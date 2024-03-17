@@ -13,41 +13,7 @@ pip install infeready
 ```
 
 ## Examples
-Example invocation showcasing varying sources and filters (not all of which may be implemented at the time)
-
-```python
-from infeready import user_prompt, SystemPrompt
-from infeready.sources import PDF, GoogleDrive, LangchainDocuments
-from infeready.filters import PromptInject, Anonymize, AccessControl
-
-examples = infeready.load_examples("./icl_examples.json")
-
-system = SystemPrompt("You are LawyerGPT, and must estimate the most likely judicial outcome for a user provided case. Consider all provided documents and respond concisely."}
-
-prompt = user_prompt(
-    "determine the most likely legal outcome for the provided case",
-    history=[system],
-    examples=examples,
-    sources=[
-        PDF('case_file.pdf'),
-        GoogleDrive("credentials.json")
-        LangchainDocuments(get_langchain_docs()) # DIY fetch from vectorstore
-    ],
-    filters=[PromptInject(provider="epoch"), Anonymize(provider="local")],
-    max_token_count=10000
-)
-
-# We can use the prompt in any LLM or library format
-from openai import OpenAI
-client = OpenAI()
-stream = client.chat.completions.create(
-    model="gpt-4",
-    messages=prompt.to_openai_messages(),
-    stream=True,
-)
-```
-
-Example invocation with the openai messages format
+Example invocation showcasing varying sources and filters (not all of which may be implemented at the time) and using the openai messages format
 
 ```python
 from infeready import messages_prompt
