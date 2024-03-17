@@ -17,8 +17,8 @@ Example invocation showcasing varying sources and filters (not all of which may 
 
 ```python
 from infeready import messages_prompt
-from infeready.sources import PDF, GoogleDrive, FromDocuments
-from infeready.filters import PromptInject, Anonymize, AccessControl
+from infeready.sources import PDF, GoogleDrive, LangchainDocuments
+from infeready.filters import PromptInject, Anonymize, TrimTokens
 
 examples = infeready.load_examples("./icl_examples.json")
 
@@ -39,12 +39,14 @@ prompt = messages_prompt(
     sources=[
         PDF('case_file.pdf'),
         GoogleDrive("credentials.json")
-        FromDocuments(get_langchain_docs()) # DIY fetch from vectorstore
+        LangchainDocuments(get_langchain_docs()) # DIY fetch from vectorstore
     ],
-    filters=[PromptInject(provider="epoch"), Anonymize(provider="local")],
-    max_token_count=10000
+    filters=[
+        PromptInject(provider="local"), 
+        Anonymize(provider="local"),
+        TrimTokens(from="examples", max=10000)
+    ]
 )
-
 
 # Use the prompt with langchain
 from langchain_openai import ChatOpenAI
@@ -52,10 +54,27 @@ from langchain_openai import ChatOpenAI
 model = ChatOpenAI()
 chain = prompt.to_langchain_messages() | model
 chain.invoke()
+
+# Or, use prompt with the openai SDK
+from openai import OpenAI
+client = OpenAI()
+stream = client.chat.completions.create(
+    model="gpt-4",
+    messages=prompt.to_openai_messages(),
+)
 ```
 
-## Features
-
-- Unit test creation: test prompt creation consistently every time
-- Security and privacy scanners
+## Current Features
 - Compatible with openai and langchain input formats
+
+## Roadmap
+- Filters:
+    - Prompt Injection
+    - PII redaction
+    - Access Control (applicable per data source item)
+    - Prompt compression:
+        - Remove repeated content in examples
+        - Minimum Viable Template
+- Sources:
+    - PDF, GoogleDrive ... (file an issue to ask for a source!)
+- Unit test utils: Assertions for prompts without string matching
