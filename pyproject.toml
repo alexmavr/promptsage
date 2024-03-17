@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "infeready"
+version = "0.0.1"
+description = "Inferready helps you combine all the components of your prompt into a single LLM-ready payload"
+authors = ["Alex Mavrogiannis <almavrog@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+jinja2 = "^3.1.3"
+pytest = "^8.1.1"
+langchain = "^0.1.12"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
