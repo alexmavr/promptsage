@@ -1,7 +1,8 @@
 from typing import List
+from enum import Enum
 from abc import ABC, abstractmethod
 from langchain_core.documents import Document
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 import jinja2
 
 class Source():
@@ -9,10 +10,13 @@ class Source():
         pass
 
 class EchoSource(Source):
-    def __init__(self, data: str):
+    def __init__(self, data: str, user_id: str = None):
         self.data = data
+        self.user_id = user_id
 
-    def content(self) -> str:
+    def content(self, user_id: str = None) -> str:
+        if user_id and self.user_id and user_id != self.user_id:
+            raise UnauthorizedError()
         return self.data
 
 class Filter(ABC):
@@ -28,6 +32,9 @@ class Template(ABC):
     @abstractmethod
     def render(self, user_prompt, examples: List[str], source_content: List[str]) -> str:
         pass
+
+class UnauthorizedError(Exception):
+    pass
 
 class DefaultTemplate(Template):
     template = '''
@@ -80,7 +87,13 @@ class Prompt():
                 res.append(SystemMessage(message["content"]))
             elif message["role"] == "user":
                 res.append(HumanMessage(message["content"]))
+            elif message["role"] == "assistant":
+                res.append(AIMessage(message["content"]))
         return res
+
+class AccessControlPolicy(Enum):
+    enforce_all = 1
+    skip_unauthorized = 2
 
 def messages_prompt(
     messages: List[dict],
@@ -88,8 +101,9 @@ def messages_prompt(
     examples: List[str] = [],
     sources: List[Source] = [],
     filters: List[Filter] = [],
-    max_token_count: int = -1,
     template: Template = DefaultTemplate(),
+    user_id: str = None,
+    access_control_policy: str = AccessControlPolicy.enforce_all,
 ):
     # When no user_prompt is provided, use the last message from the messages list
     skip_last_message = False
@@ -105,7 +119,14 @@ def messages_prompt(
 
     source_content = []
     for source in sources:
-        source_content.append(source.content())
+        # check if the user has access to the source, raise UnauthorizedError if not
+        try:
+            source_content.append(source.content(user_id))
+        except UnauthorizedError:
+            if access_control_policy == AccessControlPolicy.enforce_all:
+                raise
+            elif access_control_policy == AccessControlPolicy.skip_unauthorized:
+                continue
 
     str_prompt = template.render(user_prompt, examples, source_content)
 

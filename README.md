@@ -64,17 +64,25 @@ stream = client.chat.completions.create(
 )
 ```
 
+### Example: Simple Access Control
+
+Infeready provides an entrypoint for access control on each individual source using user_id matching. For langchain documents, each sensitive document is expected to have a user_id metadata field. The `messages_prompt` method also receives a `user_id` parameter and will raise an `UnauthorizedError` if any of the sources has a different `user_id` value in its metadata. A source without any `user_id` value in its metadata will be considered public and no access control policy will be applied to it.
+
 ## Current Features
 - Compatible with openai and langchain input formats
+- Filters: Simple Access Control
 
 ## Roadmap
+
+- Input formats: basic, langchain, Llama index
+- Output formats: llama index
+- Cookbooks
+- Sources: opportunistic use of langchain doc loaders
+
 - Filters:
     - Prompt Injection
     - PII redaction
-    - Access Control (applicable per data source item)
     - Prompt compression:
         - Remove repeated content in examples
         - Minimum Viable Template
-- Sources:
-    - PDF, GoogleDrive ... (file an issue to ask for a source!)
 - Unit test utils: Assertions for prompts without string matching

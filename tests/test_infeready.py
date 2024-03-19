@@ -1,6 +1,12 @@
 import pytest
 from infeready.infeready  import (
-    messages_prompt, EchoSource, NoopFilter, DefaultTemplate, Source, Filter, Template, Prompt
+    messages_prompt, 
+    EchoSource, 
+    NoopFilter, 
+    DefaultTemplate, 
+    Prompt,
+    AccessControlPolicy,
+    UnauthorizedError
 )
 
 from infeready.sources import LangchainDocuments
@@ -50,6 +56,9 @@ def test_langchain_documents():
 
     loader = CSVLoader(file_path='./tests/test.csv')
     data = loader.load()
+    assert len(data) > 0 
+    print(data)
+
     source = LangchainDocuments(data)
 
     messages = [{"role": "system", "message": "system prompt"}, {"role": "user", "message": "user prompt"}]
@@ -67,6 +76,39 @@ def test_langchain_documents():
     assert "values654" in str_prompt
     assert "here789" in str_prompt
     assert "there987" in str_prompt
+
+def test_access_control_reject():
+    sources = [
+    EchoSource("User 1 knows that the password is XXX", "user1"),
+    EchoSource("User 2 knows that the password is YYY", "user2"),
+    EchoSource("User 3 knows that the password is ZZZ", "user3"),
+    ]
+
+    with pytest.raises(UnauthorizedError):
+        prompt = messages_prompt(
+            [{"role": "user", "message": "What do I know as a user?"}],
+            sources=sources,
+            user_id="user2",
+        )
+
+def test_access_control_skip():
+    sources = [
+    EchoSource("User 1 knows that the password is XXX", "user1"),
+    EchoSource("User 2 knows that the password is YYY", "user2"),
+    EchoSource("User 3 knows that the password is ZZZ", "user3"),
+    ]
+
+    prompt = messages_prompt(
+        [{"role": "user", "message": "What do I know as a user?"}],
+        sources=sources,
+        user_id="user2",
+        access_control_policy=AccessControlPolicy.skip_unauthorized,
+    )
+
+    str_prompt = prompt.to_str()
+    assert "YYY" in str_prompt
+    assert "XXX" not in str_prompt
+    assert "ZZZ" not in str_prompt
 
 if __name__ == '__main__':
     pytest.main()
