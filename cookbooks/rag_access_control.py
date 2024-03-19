@@ -15,16 +15,16 @@ texts = [
 db = FAISS.from_texts(
     texts,
     embedding=OpenAIEmbeddings(),
-    metadatas=[{"user_id": f"user{i}"} for i in range(len(texts))]  # Each text is owned by a different user
+    metadatas=[{"user_id": f"user{i}"} for i in range(1, len(texts)+1)]  # Each text is owned by a different user
 )
 
 # The following are defined in the application's context
 query = "What do I know as a user?"
-user_id = "user1"
+user_id = "user2"
 
 docs = db.similarity_search(query)
-
 print(docs)
+
 prompt = messages_prompt(
    [{"role": "user", "content": query}],
    sources=[LangchainDocuments(docs)],
@@ -32,5 +32,6 @@ prompt = messages_prompt(
    access_control_policy=AccessControlPolicy.skip_unauthorized,
 )
 
-print(prompt.to_str())
 print(ChatOpenAI().invoke(prompt.to_langchain_messages()))
+
+# Returns: As a user, you know your password is "YYY"
