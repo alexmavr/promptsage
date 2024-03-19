@@ -31,7 +31,7 @@ def test_default_template():
     assert "Sources" in rendered
 
 def test_messages_prompt():
-    messages = [{"role": "system", "message": "system prompt"}, {"role": "user", "message": "user prompt"}]
+    messages = [{"role": "system", "content": "system prompt"}, {"role": "user", "content": "user prompt"}]
     prompt = messages_prompt(
         messages, 
         examples=["example1", "example2"], 
@@ -61,7 +61,7 @@ def test_langchain_documents():
 
     source = LangchainDocuments(data)
 
-    messages = [{"role": "system", "message": "system prompt"}, {"role": "user", "message": "user prompt"}]
+    messages = [{"role": "system", "content": "system prompt"}, {"role": "user", "content": "user prompt"}]
     prompt = messages_prompt(
         messages, 
         examples=[], 
@@ -86,7 +86,7 @@ def test_access_control_reject():
 
     with pytest.raises(UnauthorizedError):
         prompt = messages_prompt(
-            [{"role": "user", "message": "What do I know as a user?"}],
+            [{"role": "user", "content": "What do I know as a user?"}],
             sources=sources,
             user_id="user2",
         )
@@ -99,7 +99,7 @@ def test_access_control_skip():
     ]
 
     prompt = messages_prompt(
-        [{"role": "user", "message": "What do I know as a user?"}],
+        [{"role": "user", "content": "What do I know as a user?"}],
         sources=sources,
         user_id="user2",
         access_control_policy=AccessControlPolicy.skip_unauthorized,

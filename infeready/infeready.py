@@ -5,8 +5,9 @@ from langchain_core.documents import Document
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 import jinja2
 
-class Source():
-    def content(self) -> str:
+class Source(ABC):
+    @abstractmethod
+    def content(self, user_id: None, skip_unauthorized: bool = False) -> str:
         pass
 
 class EchoSource(Source):
@@ -66,7 +67,7 @@ class DefaultTemplate(Template):
 class Prompt():
     def __init__(self, str_prompt: str, messages: List[dict] = []):
         self.str_prompt = str_prompt
-        self.messages = messages, # Always represents past messages
+        self.messages = messages # Always represents past messages
 
     def __str__(self):
         return self.str_prompt
@@ -75,7 +76,7 @@ class Prompt():
         return str(self)
 
     def to_openai_messages(self):
-        return self.messages + [{"role": "user", "message": self.str_prompt}]
+        return self.messages + [{"role": "user", "content": self.str_prompt}]
 
     def to_langchain_document(self):
         return Document(self.str_prompt)
@@ -83,12 +84,16 @@ class Prompt():
     def to_langchain_messages(self):
         res = []
         for message in self.messages:
+            if type(message) != dict:
+                raise ValueError("Message is not a dictionary: " + str(message))
             if message["role"] == "system":
                 res.append(SystemMessage(message["content"]))
             elif message["role"] == "user":
                 res.append(HumanMessage(message["content"]))
             elif message["role"] == "assistant":
                 res.append(AIMessage(message["content"]))
+
+        res.append(HumanMessage(self.str_prompt))
         return res
 
 class AccessControlPolicy(Enum):
@@ -114,14 +119,14 @@ def messages_prompt(
             raise ValueError("Last message does not have a role")
         if messages[-1]["role"] != "user":
             raise ValueError("Last message is not from the user")
-        user_prompt = messages[-1]["message"]
+        user_prompt = messages[-1]["content"]
         skip_last_message = True
 
     source_content = []
     for source in sources:
         # check if the user has access to the source, raise UnauthorizedError if not
         try:
-            source_content.append(source.content(user_id))
+            source_content.append(source.content(user_id, skip_unauthorized=True))
         except UnauthorizedError:
             if access_control_policy == AccessControlPolicy.enforce_all:
                 raise
@@ -136,5 +141,5 @@ def messages_prompt(
 
     if skip_last_message:
         messages = messages[:-1]
-    
+
     return Prompt(str_prompt, messages)
