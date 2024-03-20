@@ -4,8 +4,8 @@
 
 # Promptsage
 Promptsage is an LLM prompt builder with AI safety guardrails. Apply fine-grained access
-control over each context source, and sanitization filters to prevent unwanted
-behavior. Compatible with all major datastores, LLMs and gateways.
+control over the context, and prevent unwanted
+behavior with filters. Compatible with all major datastores, LLMs and gateways.
 
 ## Quick Install
 

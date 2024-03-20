@@ -1,5 +1,6 @@
+.PHONY: test test-env
 
-test: test-env
+test: 
 	poetry run python3 -m pytest tests
 
 test-env:

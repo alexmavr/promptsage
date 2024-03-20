@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "infeready"
+name = "promptsage"
 version = "0.0.1"
-description = "Inferready helps you combine all the components of your prompt into a single LLM-ready payload"
+description = "Promptsage helps you combine all the components of your prompt into a single LLM-ready payload"
 authors = ["Alex Mavrogiannis <almavrog@gmail.com>"]
 readme = "README.md"
 
