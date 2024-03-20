@@ -1,5 +1,5 @@
 import pytest
-from infeready.infeready  import (
+from promptsage  import (
     messages_prompt, 
     EchoSource, 
     NoopFilter, 
@@ -9,8 +9,8 @@ from infeready.infeready  import (
     UnauthorizedError
 )
 
-from infeready.filters import PromptInject, PromptInjectionDetectedError
-from infeready.sources import LangchainDocuments
+from promptsage.filters import PromptInject, PromptInjectionDetectedError
+from promptsage.sources import LangchainDocuments
 
 def test_echo_source():
     source = EchoSource("source data")

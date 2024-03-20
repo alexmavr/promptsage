@@ -1,4 +1,4 @@
-from ..infeready import Filter
+from ..promptsage import Filter
 import requests
 import os
 
