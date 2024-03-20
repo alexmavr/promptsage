@@ -1,0 +1,13 @@
+version: '3'
+services:
+  llm-guard:
+    container_name: llm-guard
+    image: laiyer/llm-guard-api:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - LOG_LEVEL=DEBUG
+      - AUTH_TOKEN=mytoken
+    restart: always
+    volumes:
+      - ./tests/scanners.yml:/home/user/app/config/scanners.yml

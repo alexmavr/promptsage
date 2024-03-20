@@ -15,7 +15,7 @@ class EchoSource(Source):
         self.data = data
         self.user_id = user_id
 
-    def content(self, user_id: str = None) -> str:
+    def content(self, user_id: str = None, skip_unauthorized: bool = False) -> str:
         if user_id and self.user_id and user_id != self.user_id:
             raise UnauthorizedError()
         return self.data

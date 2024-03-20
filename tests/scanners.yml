@@ -1,0 +1,41 @@
+app:
+  name: ${APP_NAME:LLM Guard API}
+  log_level: ${LOG_LEVEL:INFO}
+  scan_fail_fast: ${SCAN_FAIL_FAST:false}
+  scan_prompt_timeout: ${SCAN_PROMPT_TIMEOUT:10}
+  scan_output_timeout: ${SCAN_OUTPUT_TIMEOUT:30}
+  port: ${APP_PORT:8000}
+
+cache:
+  ttl: ${CACHE_TTL:3600}
+  #max_size: ${CACHE_MAX_SIZE:1000}
+
+rate_limit:
+  enabled: ${RATE_LIMIT_ENABLED:true}
+  limit: ${RATE_LIMIT_LIMIT:100/minute}
+
+auth:
+  type: http_bearer
+  token: ${AUTH_TOKEN:}
+
+tracing:
+  exporter: ${TRACING_EXPORTER:console}
+  endpoint: ${TRACING_OTEL_ENDPOINT:}  # Example: "<traces-endpoint>/v1/traces"
+
+metrics:
+  exporter: ${METRICS_TYPE:prometheus}
+  endpoint: ${METRICS_ENDPOINT:}  # Example: "<metrics-endpoint>/v1/metrics"
+
+# Scanners are applied in the order they are listed here.
+input_scanners:
+  - type: PromptInjection
+    params:
+      threshold: 0.9
+
+output_scanners:
+  - type: Regex
+    params:
+      patterns: ["Bearer [A-Za-z0-9-._~+/]+"]
+      is_blocked: true
+      match_type: search
+      redact: true
