@@ -67,34 +67,44 @@ class DefaultTemplate(Template):
 class Prompt():
     def __init__(self, str_prompt: str, messages: List[dict] = []):
         self.str_prompt = str_prompt
-        self.messages = messages # Always represents past messages
+        # Standardize the message format internally to a simple dictionary format
+        self.messages = self._standardize_messages(messages)
 
     def __str__(self):
         return self.str_prompt
-    
+
     def to_str(self):
         return str(self)
 
     def to_openai_messages(self):
-        return self.messages + [{"role": "user", "content": self.str_prompt}]
+        # Convert standardized messages to OpenAI format
+        return [{"role": message["role"], "content": message["content"]} for message in self.messages] + [{"role": "user", "content": self.str_prompt}]
 
     def to_langchain_document(self):
         return Document(self.str_prompt)
 
     def to_langchain_messages(self):
+        # Convert standardized messages to Langchain format
         res = []
         for message in self.messages:
-            if type(message) != dict:
-                raise ValueError("Message is not a dictionary: " + str(message))
             if message["role"] == "system":
                 res.append(SystemMessage(message["content"]))
             elif message["role"] == "user":
                 res.append(HumanMessage(message["content"]))
             elif message["role"] == "assistant":
                 res.append(AIMessage(message["content"]))
-
         res.append(HumanMessage(self.str_prompt))
         return res
+
+    def _standardize_messages(self, messages):
+        standardized_messages = []
+        for message in messages:
+            if 'message' in message:  # OpenAI format
+                standardized_messages.append({"role": message["role"], "content": message["message"]["content"]})
+            else:  # Langchain format or simple dict format
+                standardized_messages.append({"role": message["role"], "content": message["content"]})
+        return standardized_messages
+
 
 class AccessControlPolicy(Enum):
     enforce_all = 1
