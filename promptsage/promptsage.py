@@ -100,6 +100,54 @@ class AccessControlPolicy(Enum):
     enforce_all = 1
     skip_unauthorized = 2
 
+def _build_prompt(
+        user_prompt: str,
+        messages: List[dict],
+        examples: List[str],
+        sources: List[Source],
+        filters: List[Filter],
+        template: Template,
+        user_id: str,
+        access_control_policy: str,
+) -> str:
+    source_content = []
+    for source in sources:
+        # check if the user has access to the source, raise UnauthorizedError if not
+        try:
+            source_content.append(source.content(user_id, skip_unauthorized=True))
+        except UnauthorizedError:
+            if access_control_policy == AccessControlPolicy.enforce_all:
+                raise
+            elif access_control_policy == AccessControlPolicy.skip_unauthorized:
+                continue
+
+    str_prompt = template.render(user_prompt, examples, source_content)
+
+    for filter in filters:
+        # Raises FilterError if any filter fails
+        str_prompt = filter.filter(str_prompt)
+    return str_prompt
+
+def text_prompt(
+    user_prompt: str, # If specified, will be used instead of the last item in messages
+    examples: List[str] = [],
+    sources: List[Source] = [],
+    filters: List[Filter] = [],
+    template: Template = DefaultTemplate(),
+    user_id: str = None,
+    access_control_policy: str = AccessControlPolicy.enforce_all,
+) -> str:
+    return Prompt(_build_prompt(
+        user_prompt,
+        [],
+        examples,
+        sources,
+        filters,
+        template,
+        user_id,
+        access_control_policy,
+    ))
+
 def messages_prompt(
     messages: List[dict],
     user_prompt: str = "", # If specified, will be used instead of the last item in messages
@@ -122,22 +170,16 @@ def messages_prompt(
         user_prompt = messages[-1]["content"]
         skip_last_message = True
 
-    source_content = []
-    for source in sources:
-        # check if the user has access to the source, raise UnauthorizedError if not
-        try:
-            source_content.append(source.content(user_id, skip_unauthorized=True))
-        except UnauthorizedError:
-            if access_control_policy == AccessControlPolicy.enforce_all:
-                raise
-            elif access_control_policy == AccessControlPolicy.skip_unauthorized:
-                continue
-
-    str_prompt = template.render(user_prompt, examples, source_content)
-
-    for filter in filters:
-        # Raises FilterError if any filter fails
-        str_prompt = filter.filter(str_prompt)
+    str_prompt = _build_prompt(
+        user_prompt,
+        messages,
+        examples,
+        sources,
+        filters,
+        template,
+        user_id,
+        access_control_policy,
+    )
 
     if skip_last_message:
         messages = messages[:-1]

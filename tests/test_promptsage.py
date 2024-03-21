@@ -1,6 +1,7 @@
 import pytest
 from promptsage  import (
     messages_prompt, 
+    text_prompt, 
     EchoSource, 
     NoopFilter, 
     DefaultTemplate, 
@@ -35,6 +36,26 @@ def test_messages_prompt():
     messages = [{"role": "system", "content": "system prompt"}, {"role": "user", "content": "user prompt"}]
     prompt = messages_prompt(
         messages, 
+        examples=["example1", "example2"], 
+        sources=[EchoSource("source1"), EchoSource("source2")], 
+        filters=[NoopFilter()], 
+    )
+    assert isinstance(prompt, Prompt)
+
+    str_prompt = prompt.to_str()
+
+    # Test the string output version
+    assert "user prompt" in str_prompt
+    assert "example1" in str_prompt
+    assert "example2" in str_prompt
+    assert "source1" in str_prompt
+    assert "source2" in str_prompt
+    assert "Examples" in str_prompt
+    assert "Sources" in str_prompt
+
+def test_text_prompt():
+    prompt = text_prompt(
+        "user prompt",
         examples=["example1", "example2"], 
         sources=[EchoSource("source1"), EchoSource("source2")], 
         filters=[NoopFilter()], 

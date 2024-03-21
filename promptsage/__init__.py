@@ -8,5 +8,6 @@ from .promptsage import (
     Filter, 
     Template, 
     Prompt, 
-    messages_prompt
+    messages_prompt,
+    text_prompt
 )
