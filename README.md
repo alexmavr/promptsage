@@ -3,7 +3,7 @@
 </div>
 
 # Promptsage
-Promptsage is an LLM prompt builder and sanitizer with built-in AI safety
+Promptsage is an LLM prompt builder, linter and sanitizer with built-in 
 guardrails. Combine all components of your prompt into a compressed LLM-ready
 payload. Apply fine-grained access control over the context, and prevent
 unwanted behavior with filters. Compatible with langchain and all major
