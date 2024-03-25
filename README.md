@@ -3,11 +3,11 @@
 </div>
 
 # Promptsage
-Promptsage is an LLM prompt builder, linter and sanitizer with built-in 
-guardrails. Combine all components of your prompt into a compressed LLM-ready
-payload. Apply fine-grained access control over the context, and prevent
-unwanted behavior with filters. Compatible with langchain and all major
-datastores, LLMs and gateways.
+Promptsage is an LLM prompt builder, linter and sanitizer with built-in
+guardrails and fine-access control over the context. Combine all components of
+your prompt into a compressed LLM-ready payload. Apply filters to sanitize your
+final prompt. Compatible with langchain and all major datastores, LLMs and
+gateways.
 
 ## Quick Install
 
@@ -20,19 +20,19 @@ pip install promptsage
 
 ```python
 from promptsage import text_prompt, load_examples
-from promptsage.sources import PDF, LangchainDocuments
-from promptsage.filters import PromptInject, Anonymize, TrimTokens
+from promptsage.sources import PDF, Weaviate
+from promptsage.filters import PromptInject, TrimTokens
 
 prompt = text_prompt(
     "Summarize the following case file and provide references from the datastore"
-    examples=load_examples("./icl_examples.json")
+    user_id="janedoe",
+    examples=load_examples("./icl_examples.json"),
     sources=[
-        PDF('case_file.pdf'),
-        LangchainDocuments(fetch_from_store())
+        PDF("case_file.pdf", acl="public"),
+        Weaviate(config)
     ],
     filters=[
-        PromptInject(provider="local"), 
-        Anonymize(provider="local"),
+        PromptInject(provider="llm-guard"), 
         TrimTokens(from="examples", max=10000)
     ]
 )
@@ -102,6 +102,7 @@ promptsage introduces the following contexts
 - Filters: Prompt Injection
 
 ## Roadmap
+- "Engine" construct with global_sources and access control settings
 - llama_index support
 - Acess Control: LDAP & SSO integration
 - Vectorstores: Langchain, Pinecone, Milvus
@@ -109,3 +110,4 @@ promptsage introduces the following contexts
     - PII anonymization
 - Templates:
     - Prompt compression
+- Source caching
